@@ -27,7 +27,7 @@ class _TaskDialogState extends ConsumerState<TaskDialog> {
   late final TextEditingController _titleController;
   late final TextEditingController _descController;
   late DateTime _selectedDate;
-  int? _assignedTo;
+  late List<int> _assignedTo;
 
   @override
   void initState() {
@@ -37,8 +37,8 @@ class _TaskDialogState extends ConsumerState<TaskDialog> {
       text: widget.task?.description ?? '',
     );
     _selectedDate = widget.task?.dueDate ?? DateTime.now();
-    _assignedTo =
-        widget.task?.assignees.isNotEmpty == true ? widget.task!.assignees.first : null;
+    // Создаём новую копию списка, чтобы избежать дублирования
+    _assignedTo = List.from(widget.task?.assignees ?? []);
   }
 
   @override
@@ -49,7 +49,7 @@ class _TaskDialogState extends ConsumerState<TaskDialog> {
   }
 
   Future<void> _onSave() async {
-    if (_assignedTo == null || _titleController.text.isEmpty) {
+    if (_assignedTo.isEmpty || _titleController.text.isEmpty) {
       return;
     }
 
@@ -62,7 +62,7 @@ class _TaskDialogState extends ConsumerState<TaskDialog> {
         title: _titleController.text,
         description: _descController.text,
         dueDate: _selectedDate,
-        memberIds: [_assignedTo!],
+        memberIds: _assignedTo,
       );
     } else {
       await repo.updateTask(
@@ -70,7 +70,7 @@ class _TaskDialogState extends ConsumerState<TaskDialog> {
         title: _titleController.text,
         description: _descController.text,
         dueDate: _selectedDate,
-        memberIds: [_assignedTo!],
+        memberIds: _assignedTo,
       );
     }
 
@@ -88,6 +88,78 @@ class _TaskDialogState extends ConsumerState<TaskDialog> {
     if (picked != null) {
       setState(() => _selectedDate = picked);
     }
+  }
+
+  void _showAssigneeSelection(List<dynamic> members) {
+    List<int> tempAssigned = List.from(_assignedTo);
+    
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Выберите исполнителей'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        setDialogState(() {
+                          tempAssigned = List.from(members.map((m) => m.id));
+                        });
+                      },
+                      child: const Text('Выбрать всех'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setDialogState(() {
+                          tempAssigned.clear();
+                        });
+                      },
+                      child: const Text('Отменить всех'),
+                    ),
+                  ],
+                ),
+                const Divider(),
+                ...members.map((member) {
+                  return CheckboxListTile(
+                    value: tempAssigned.contains(member.id),
+                    onChanged: (selected) {
+                      setDialogState(() {
+                        if (selected == true) {
+                          tempAssigned.add(member.id);
+                        } else {
+                          tempAssigned.remove(member.id);
+                        }
+                      });
+                    },
+                    title: Text(member.displayName ?? ''),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Отмена'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _assignedTo = tempAssigned;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('Готово'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -123,23 +195,19 @@ class _TaskDialogState extends ConsumerState<TaskDialog> {
             const SizedBox(height: 12),
             membersAsync.when(
               data: (members) {
-                return DropdownButton<int>(
-                  isExpanded: true,
-                  value: _assignedTo,
-                  hint: const Text("Назначить участнику"),
-                  items: members
-                      .map(
-                        (m) => DropdownMenuItem<int>(
-                          value: m.id,
-                          child: Text(m.displayName ?? ""),
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Исполнители:'),
+                  subtitle: _assignedTo.isEmpty
+                      ? const Text('Не выбраны')
+                      : Text(
+                          members
+                              .where((m) => _assignedTo.contains(m.id))
+                              .map((m) => m.displayName ?? '')
+                              .join(', '),
                         ),
-                      )
-                      .toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _assignedTo = val;
-                    });
-                  },
+                  trailing: const Icon(Icons.edit),
+                  onTap: () => _showAssigneeSelection(members),
                 );
               },
               loading: () => const CircularProgressIndicator(),

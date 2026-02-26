@@ -10,7 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class TaskListItem extends ConsumerWidget {
   final Task task;
   final FamilyMember? creator;
-  final FamilyMember? assignee;
+  final Map<int, FamilyMember> membersMap;
   final int mySessionMemberId;
   final int memberId;
   final int familyId;
@@ -19,7 +19,7 @@ class TaskListItem extends ConsumerWidget {
     Key? key,
     required this.task,
     required this.creator,
-    required this.assignee,
+    required this.membersMap,
     required this.mySessionMemberId,
     required this.memberId,
     required this.familyId,
@@ -34,7 +34,14 @@ class TaskListItem extends ConsumerWidget {
   }
 
   bool get _canDelete {
-    return task.createdBy == mySessionMemberId || assignee?.role == true;
+    // Может удалить создатель или любой из исполнителей, имеющий роль родителя
+    if (task.createdBy == mySessionMemberId) return true;
+    
+    for (int assigneeId in task.assignees) {
+      final assignee = membersMap[assigneeId];
+      if (assignee?.role == true) return true;
+    }
+    return false;
   }
 
   Future<void> _deleteTask(WidgetRef ref) async {
@@ -108,7 +115,7 @@ class TaskListItem extends ConsumerWidget {
               : null,
         ),
         title: Text(
-          '${task.title} - ${assignee?.displayName}',
+          '${task.title} - ${task.assignees.isNotEmpty ? task.assignees.map((id) => membersMap[id]?.displayName ?? '').join(', ') : 'Не назначено'}',
           style: TextStyle(color: textColor),
         ),
         subtitle: Text(

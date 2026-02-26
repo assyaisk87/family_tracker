@@ -46,14 +46,11 @@ class Tasks extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final task = tasks[index];
                     final creator = membersMap[task.createdBy];
-                    final assignee = task.assignees.isNotEmpty
-                        ? membersMap[task.assignees.first]
-                        : null;
 
                     return TaskListItem(
                       task: task,
                       creator: creator,
-                      assignee: assignee,
+                      membersMap: membersMap,
                       mySessionMemberId: mySessionMemberId!,
                       memberId: memberId,
                       familyId: familyId,
