@@ -9,7 +9,6 @@ import 'package:family_tracker/pages/tab/family_members_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Profile extends ConsumerWidget {
   const Profile({super.key});
@@ -53,20 +52,17 @@ class Profile extends ConsumerWidget {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image == null) return;
 
-    final bytes = await image.readAsBytes();
-    final client = Supabase.instance.client;
-    final filePath = 'avatars/${member?.userId}.png';
-
-    await client.storage.from('avatars').uploadBinary(filePath, bytes);
-
-    final url = client.storage.from('avatars').getPublicUrl(filePath);
-
     final repo = ref.read(familyRepositoryProvider);
-    // используем готовую функцию
-    await repo.updateAvatar(member!.id.toString(), url);
 
-    // обновляем UI
-    ref.invalidate(familyMembersProvider);
+    try {
+      await repo.uploadAndUpdateAvatar(member!.id, member.userId, image);
+      // обновляем UI
+      ref.invalidate(familyMembersProvider);
+    } catch (e) {
+      if (e is Exception) {
+        print('Ошибка загрузки аватара: $e');
+      }
+    }
   }
 
   @override

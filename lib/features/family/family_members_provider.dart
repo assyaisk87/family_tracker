@@ -1,11 +1,9 @@
+import 'package:family_tracker/features/family/family_repository_provider.dart';
 import 'package:family_tracker/features/session/session_provider.dart';
 import 'package:family_tracker/model/family_member.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-final familyMembersProvider =
-    FutureProvider<List<FamilyMember>>((ref) async {
-
+final familyMembersProvider = FutureProvider<List<FamilyMember>>((ref) async {
   final sessionAsync = ref.watch(sessionProvider);
 
   return sessionAsync.when(
@@ -14,16 +12,8 @@ final familyMembersProvider =
         return [];
       }
 
-      final client = Supabase.instance.client;
-
-      final response = await client
-          .from('family_members')
-          .select()
-          .eq('family_id', session.family!.id);
-
-      return (response as List)
-          .map((e) => FamilyMember.fromJson(e))
-          .toList();
+      final repo = ref.read(familyRepositoryProvider);
+      return repo.fetchFamilyMembers(session.family!.id);
     },
     loading: () async => [],
     error: (_, _) async => [],
