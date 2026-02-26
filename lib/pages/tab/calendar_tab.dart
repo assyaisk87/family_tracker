@@ -1,10 +1,14 @@
 import 'package:family_tracker/core/theme/app_colors.dart';
 import 'package:family_tracker/features/calendar/calendar_provider.dart';
+import 'package:family_tracker/features/family/family_map_provider.dart';
+import 'package:family_tracker/features/session/session_provider.dart';
 import 'package:family_tracker/features/tasks/tasks_provider.dart';
 import 'package:family_tracker/model/task.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'task_list_item.dart';
+import 'calendar_task_item.dart';
 
 class Calendar extends ConsumerWidget {
   const Calendar({super.key});
@@ -14,6 +18,8 @@ class Calendar extends ConsumerWidget {
     final focusedDay = ref.watch(focusedDayProvider);
     final selectedDay = ref.watch(selectedDayProvider);
     final tasksAsync = ref.watch(tasksProvider);
+    final membersMap = ref.watch(familyMembersMapProvider);
+    final session = ref.watch(sessionProvider).value!;
 
     return tasksAsync.when(
       data: (tasks) {
@@ -26,7 +32,7 @@ class Calendar extends ConsumerWidget {
             : [];
 
         return Scaffold(
-          appBar: AppBar(title: Text('Календарь')),
+          appBar: AppBar(title: const Text('Календарь')),
           body: Column(
             children: [
               TableCalendar<Task>(
@@ -79,38 +85,13 @@ class Calendar extends ConsumerWidget {
                                 DateTime(today.year, today.month, today.day),
                               );
 
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Card(
-                              color: isExpired ? Colors.red : Colors.white,
-                              child: ListTile(
-                                title: Text(
-                                  task.title,
-                                  style: TextStyle(
-                                    color: isExpired
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  task.description ?? '',
-                                  style: TextStyle(
-                                    color: isExpired
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                ),
-                                leading: Icon(
-                                  task.completed
-                                      ? Icons.check_circle
-                                      : Icons.radio_button_unchecked,
-                                  color: task.completed
-                                      ? AppColors.primary
-                                      : Colors.grey,
-                                ),
-                              ),
-                            ),
-                          );
+                        // calendar-specific presentation
+                        return CalendarTaskItem(
+                          task: task,
+                          creator: membersMap[task.createdBy],
+                          membersMap: membersMap,
+                          isExpired: isExpired,
+                        );
                         },
                       ),
               ),

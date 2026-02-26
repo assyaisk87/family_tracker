@@ -109,11 +109,24 @@ class TaskListItem extends ConsumerWidget {
             ),
           );
         },
-        leading: CircleAvatar(
-          backgroundImage: creator?.avatarUrl != null && creator!.avatarUrl.isNotEmpty
-              ? NetworkImage(creator!.avatarUrl)
-              : null,
-        ),
+        leading: Tooltip(
+            message: creator?.displayName ?? '',
+            // default behavior shows on hover (web/desktop) and long press (mobile)
+            child: CircleAvatar(
+              backgroundImage: creator?.avatarUrl != null && creator!.avatarUrl.isNotEmpty
+                  ? NetworkImage(creator!.avatarUrl)
+                  : null,
+              backgroundColor: AppColors.primary,
+              child: (creator?.avatarUrl == null || creator!.avatarUrl.isEmpty)
+                  ? Text(
+                      creator?.displayName != null && creator!.displayName!.isNotEmpty
+                          ? creator!.displayName!.substring(0,2).toUpperCase()
+                          : '',
+                      style: const TextStyle(color: Colors.white),
+                    )
+                  : null,
+            ),
+          ),
         title: Text(
           '${task.title} - ${task.assignees.isNotEmpty ? task.assignees.map((id) => membersMap[id]?.displayName ?? '').join(', ') : 'Не назначено'}',
           style: TextStyle(color: textColor),
