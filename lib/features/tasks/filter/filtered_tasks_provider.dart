@@ -16,6 +16,17 @@ final filteredTasksProvider = FutureProvider<List<Task>>((ref) async {
         .toList();
   }
 
+  if (filter.hideOverdue) {
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    result = result.where((task) {
+      if (task.dueDate == null) return true;
+      final taskDate = DateTime(task.dueDate!.year, task.dueDate!.month, task.dueDate!.day);
+      final overdue = taskDate.isBefore(todayDate);
+      return !overdue;
+    }).toList();
+  }
+
   result.sort((a, b) {
     if (a.dueDate == null) return 1;
     if (b.dueDate == null) return -1;

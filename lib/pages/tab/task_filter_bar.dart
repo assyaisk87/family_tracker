@@ -47,6 +47,16 @@ class TaskFilterBar extends ConsumerWidget {
           ),
           IconButton(
             icon: Icon(
+              filter.hideOverdue ? Icons.visibility_off : Icons.visibility,
+            ),
+            tooltip: filter.hideOverdue ? 'Показать просроченные' : 'Скрыть просроченные',
+            onPressed: () {
+              ref.read(taskFilterProvider.notifier).state =
+                  filter.copyWith(hideOverdue: !filter.hideOverdue);
+            },
+          ),
+          IconButton(
+            icon: Icon(
               filter.sortByDateAsc ? Icons.arrow_upward : Icons.arrow_downward,
             ),
             onPressed: () {
