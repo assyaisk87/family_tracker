@@ -1,7 +1,7 @@
 import 'package:family_tracker/core/provider/navigation_provider.dart';
-import 'package:family_tracker/pages/tab/calendar_tab.dart';
-import 'package:family_tracker/pages/tab/profile_tab.dart';
-import 'package:family_tracker/pages/tab/tasks_tab.dart';
+import 'package:family_tracker/pages/tab/calendar/calendar_tab.dart';
+import 'package:family_tracker/pages/tab/profile/profile_tab.dart';
+import 'package:family_tracker/pages/tab/task/tasks_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,9 +13,9 @@ class HomePage extends ConsumerWidget {
     final selectedIndex = ref.watch(bottomNavProvider);
 
   final pages = const [
-    Tasks(),
-    Calendar(),
-    Profile(),
+    TaskTab(),
+    CalendarTab(),
+    ProfileTab(),
   ];
 
     return Scaffold(      

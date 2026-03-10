@@ -3,7 +3,7 @@ import 'package:family_tracker/features/tasks/task_repository_provider.dart';
 import 'package:family_tracker/features/tasks/tasks_provider.dart';
 import 'package:family_tracker/model/family_member.dart';
 import 'package:family_tracker/model/task.dart';
-import 'package:family_tracker/pages/tab/task_dialog.dart';
+import 'package:family_tracker/pages/tab/task/task_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

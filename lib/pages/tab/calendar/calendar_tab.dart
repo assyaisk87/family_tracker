@@ -1,17 +1,15 @@
 import 'package:family_tracker/core/theme/app_colors.dart';
 import 'package:family_tracker/features/calendar/calendar_provider.dart';
 import 'package:family_tracker/features/family/family_map_provider.dart';
-import 'package:family_tracker/features/session/session_provider.dart';
 import 'package:family_tracker/features/tasks/tasks_provider.dart';
 import 'package:family_tracker/model/task.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'task_list_item.dart';
 import 'calendar_task_item.dart';
 
-class Calendar extends ConsumerWidget {
-  const Calendar({super.key});
+class CalendarTab extends ConsumerWidget {
+  const CalendarTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -19,7 +17,6 @@ class Calendar extends ConsumerWidget {
     final selectedDay = ref.watch(selectedDayProvider);
     final tasksAsync = ref.watch(tasksProvider);
     final membersMap = ref.watch(familyMembersMapProvider);
-    final session = ref.watch(sessionProvider).value!;
 
     return tasksAsync.when(
       data: (tasks) {

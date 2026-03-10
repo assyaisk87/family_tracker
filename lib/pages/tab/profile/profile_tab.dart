@@ -5,13 +5,13 @@ import 'package:family_tracker/features/family/family_repository_provider.dart';
 import 'package:family_tracker/features/session/session_provider.dart';
 import 'package:family_tracker/model/family.dart';
 import 'package:family_tracker/model/family_member.dart';
-import 'package:family_tracker/pages/tab/family_members_section.dart';
+import 'package:family_tracker/pages/tab/profile/family_members_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-class Profile extends ConsumerWidget {
-  const Profile({super.key});
+class ProfileTab extends ConsumerWidget {
+  const ProfileTab({super.key});
 
   void _showEditFamilyDialog(
     BuildContext context,
@@ -157,16 +157,6 @@ class Profile extends ConsumerWidget {
                           _showEditFamilyDialog(context, family!, ref),
                     ),
                   ),
-
-                // if (member?.role == true)
-                // const SizedBox(height: 12),
-
-                // // ROLE
-                // if (member?.role == true)
-                // ListTile(
-                //   title: const Text("Моя роль"),
-                //   subtitle: Text(member?.role == true ? "Родитель" : "Ребёнок"),
-                // ),
 
                 const Divider(height: 32),
 
