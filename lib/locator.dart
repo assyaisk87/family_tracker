@@ -1,5 +1,8 @@
 import 'package:family_tracker/data/repositories/auth_repository_impl.dart';
+import 'package:family_tracker/data/repositories/task_repository_impl.dart';
+import 'package:family_tracker/data/datasources/task_remote_data_source.dart';
 import 'package:family_tracker/domain/repositories/auth_repository.dart';
+import 'package:family_tracker/domain/repositories/task_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -17,5 +20,9 @@ Future<void> setupDependencies() async {
   ///repositories  
    locator.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(locator<SupabaseClient>())
+  );
+
+  locator.registerLazySingleton<TaskRepository>(
+    () => TaskRepositoryImpl(TaskRemoteDataSource())
   );
 }

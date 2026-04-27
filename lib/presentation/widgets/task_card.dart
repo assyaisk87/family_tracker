@@ -22,31 +22,42 @@ class TaskCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
         onTap: onTap,
         leading: CircleAvatar(
           backgroundColor: task.completed ? Colors.green : Colors.blue,
           child: Icon(task.completed ? Icons.check : Icons.assignment),
         ),
-        title: Text(task.title),
+        title: Text(task.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (task.description != null)
               Text(task.description!, maxLines: 2, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 4),
-            Text(assigneesText),
+            Text(assigneesText, maxLines: 1, overflow: TextOverflow.ellipsis),
             if (task.dueDate != null)
               Text('Срок: ${task.dueDate!.day}.${task.dueDate!.month}.${task.dueDate!.year}'),
           ],
         ),
         trailing: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(statusLabel, style: TextStyle(color: task.completed ? Colors.green : Colors.black54)),
-            const SizedBox(height: 8),
-            IconButton(
-              icon: Icon(task.completed ? Icons.check_box : Icons.check_box_outline_blank),
-              onPressed: onToggle,
+            Text(statusLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: task.completed ? Colors.green : Colors.black54)),
+            const SizedBox(height: 4),
+            SizedBox(
+              height: 32,
+              width: 32,
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+                iconSize: 20,
+                icon: Icon(task.completed ? Icons.check_box : Icons.check_box_outline_blank),
+                onPressed: onToggle,
+              ),
             ),
           ],
         ),

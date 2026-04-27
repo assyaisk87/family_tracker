@@ -80,13 +80,13 @@ class TaskRemoteDataSource {
             .select()
             .single();
 
-        // Добавляем assignees
+        // Добавляем assignees с реальным task_id
         for (final assignee in task.assignees) {
           await supabaseService.client
               .from('task_assignees')
               .insert({
-                'task_id': task.id,
-                'assignee_id': assignee.id,
+                'task_id': insertedTask['id'],
+                'assignee_id': int.parse(assignee.id),
               });
         }
         return;
@@ -131,10 +131,10 @@ class TaskRemoteDataSource {
 
         return (response as List)
             .map((user) => FamilyUserModel(
-              id: user['id'],
-              familyId: user['family_id'],
-              userId: user['user_id'],
-              role: user['role'] ?? false,
+              id: user['id'].toString(),
+              familyId: user['family_id'].toString(),
+              userId: user['user_id'].toString(),
+              role: user['role'] is int ? (user['role'] as int) == 1 : (user['role'] as bool? ?? false),
               displayName: user['display_name'] ?? 'Unknown',
               avatarUrl: user['avatar_url'] ?? '',
             ))
@@ -150,21 +150,23 @@ class TaskRemoteDataSource {
   TaskModel _taskModelFromJson(Map<String, dynamic> json) {
     final assignees = (json['task_assignees'] as List<dynamic>?)
         ?.map((assignee) => FamilyUserModel(
-              id: assignee['family_members']['id'],
-              familyId: assignee['family_members']['family_id'],
-              userId: assignee['family_members']['user_id'],
-              role: assignee['family_members']['role'] ?? false,
+              id: assignee['family_members']['id'].toString(),
+              familyId: assignee['family_members']['family_id'].toString(),
+              userId: assignee['family_members']['user_id'].toString(),
+              role: assignee['family_members']['role'] is int 
+                  ? (assignee['family_members']['role'] as int) == 1 
+                  : (assignee['family_members']['role'] as bool? ?? false),
               displayName: assignee['family_members']['display_name'] ?? 'Unknown',
               avatarUrl: assignee['family_members']['avatar_url'] ?? '',
             ))
         .toList() ?? [];
 
     return TaskModel(
-      id: json['id'],
+      id: json['id'].toString(),
       title: json['title'],
       description: json['description'],
-      familyId: json['family_id'],
-      createdBy: json['created_by'],
+      familyId: json['family_id'].toString(),
+      createdBy: json['created_by'].toString(),
       createdAt: DateTime.parse(json['created_at']),
       dueDate: json['due_date'] != null ? DateTime.parse(json['due_date']) : null,
       completed: json['completed'] ?? false,
@@ -175,11 +177,10 @@ class TaskRemoteDataSource {
 
   Map<String, dynamic> _taskModelToJson(TaskModel task) {
     return {
-      'id': task.id,
       'title': task.title,
       'description': task.description,
-      'family_id': task.familyId,
-      'created_by': task.createdBy,
+      'family_id': int.parse(task.familyId),
+      'created_by': int.parse(task.createdBy),
       'created_at': task.createdAt.toIso8601String(),
       'due_date': task.dueDate?.toIso8601String(),
       'completed': task.completed,

@@ -7,4 +7,5 @@ abstract class TaskRepository {
   Future<void> addTask(Task task);
   Future<void> toggleTaskDone(String taskId);
   Future<List<FamilyUser>> getParticipants();
+  Future<void> createTask(Task task);
 }
