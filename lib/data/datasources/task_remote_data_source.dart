@@ -82,11 +82,18 @@ class TaskRemoteDataSource {
 
         // Добавляем assignees с реальным task_id
         for (final assignee in task.assignees) {
+          final assigneeId = int.tryParse(assignee.userId) ?? int.tryParse(assignee.id);
+          if (assigneeId == null) {
+            throw FormatException(
+              'Невозможно преобразовать assignee_id в bigint: assignee.id=${assignee.id}, assignee.userId=${assignee.userId}',
+            );
+          }
+
           await supabaseService.client
               .from('task_assignees')
               .insert({
                 'task_id': insertedTask['id'],
-                'assignee_id': int.parse(assignee.id),
+                'assignee_id': assigneeId,
               });
         }
         return;
@@ -171,7 +178,7 @@ class TaskRemoteDataSource {
       dueDate: json['due_date'] != null ? DateTime.parse(json['due_date']) : null,
       completed: json['completed'] ?? false,
       assignees: assignees,
-      priority: json['priority'] ?? 0,
+      priority: json['priority'] ?? false,
     );
   }
 

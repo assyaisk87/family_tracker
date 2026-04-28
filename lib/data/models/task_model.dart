@@ -17,7 +17,7 @@ class TaskModel with _$TaskModel {
     DateTime? dueDate,
     required bool completed,
     required List<FamilyUserModel> assignees,
-    required int priority,
+    required bool priority,
 
   }) = _TaskModel;
 

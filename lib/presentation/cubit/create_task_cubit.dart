@@ -6,50 +6,88 @@ import 'package:family_tracker/domain/repositories/auth_repository.dart';
 import 'package:family_tracker/domain/repositories/task_repository.dart';
 
 class CreateTaskCubit extends Cubit<CreateTaskState> {
-  final TaskRepository _repository;
+  final TaskRepository _taskRepository;
   final AuthRepository _authRepository;
 
-   CreateTaskCubit(this._repository, this._authRepository)
-    : super(const CreateTaskState());
+   CreateTaskCubit(this._taskRepository, this._authRepository)
+    : super(const CreateTaskState()) {
+     _loadInitialData();
+   }
 
-  void contentChanged(String value) {
+  Future<void> _loadInitialData() async {
+    try {
+      // Получаем текущего пользователя с familyId
+      final authUser = await _authRepository.getCurrentUserWithFamily();
+      final familyId = authUser?.familyId;
+
+      // Загружаем участников семьи
+      final assignees = familyId != null ? await _taskRepository.getParticipants() : <FamilyUser>[];
+
+      emit(state.copyWith(
+        familyId: familyId,
+        availableAssignees: assignees,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: CreateTaskStatus.error,
+        errorMessage: 'Ошибка загрузки данных: $e',
+      ));
+    }
+  }
+
+  void titleChanged(String value) {
     emit(state.copyWith(title: value));
+  }
+
+  void descriptionChanged(String value) {
+    emit(state.copyWith(description: value));
+  }
+
+  void highPriorityChanged(bool value) {
+    emit(state.copyWith(highPriority: value));
+  }
+
+  void dueDateChanged(DateTime? value) {
+    emit(state.copyWith(dueDate: value));
+  }
+
+  void toggleAssignee(FamilyUser assignee) {
+    final selectedAssignees = List<FamilyUser>.from(state.selectedAssignees);
+    if (selectedAssignees.contains(assignee)) {
+      selectedAssignees.remove(assignee);
+    } else {
+      selectedAssignees.add(assignee);
+    }
+    emit(state.copyWith(selectedAssignees: selectedAssignees));
   }
   
   Future<void> submit() async {
     if (!state.canSubmit) return;
 
     emit(state.copyWith(status: CreateTaskStatus.loading));
-    final authUser = _authRepository.currentUser;
+    final authUser = await _authRepository.getCurrentUserWithFamily();
 
     final newTask = Task(
-       id: DateTime.now().millisecond.toString(),
-      // content: state.content.trim(),
-      // authorId: authUser!.id,
-      // createdAt: DateTime.now().toIso8601String(),
-      // likes: 0,
-      // imageUrl: state.imageUrl,
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: state.title!.trim(),
-      description: state.description!.trim(),
-      familyId : state.familyId.toString(),
+      description: state.description?.trim() ?? '',
+      familyId: state.familyId ?? authUser?.familyId ?? 'default_family',
       createdBy: authUser!.id,
       createdAt: DateTime.now(),
       dueDate: state.dueDate,
-      completed : false,
-      assignees: List<FamilyUser>.empty(),
-      priority:state.priority,
+      completed: false,
+      assignees: state.selectedAssignees,
+      priority: state.highPriority,
     );
 
     try {
-      await _repository.createTask(newTask);
+      await _taskRepository.createTask(newTask);
       emit(state.copyWith(status: CreateTaskStatus.success));
     } catch (e) {
-      emit(
-        state.copyWith(
-          status: CreateTaskStatus.error,
-          errorMessage: 'Ошибка создания задачи',
-        ),
-      );
+      emit(state.copyWith(
+        status: CreateTaskStatus.error,
+        errorMessage: 'Ошибка создания задачи: $e',
+      ));
     }
   }
 }

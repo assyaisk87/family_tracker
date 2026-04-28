@@ -8,20 +8,49 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._client);
 
   @override
-  AuthUser? get currentUser {
+  Future<AuthUser?> getCurrentUserWithFamily() async {
     final user = _client.auth.currentUser;
     if (user == null) return null;
 
-    return AuthUser(id: user.id, email: user.email!);
+    try {
+      final response = await _client
+          .from('family_members')
+          .select('id, family_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      return AuthUser(
+        id: response?['id']?.toString() ?? user.id,
+        email: user.email!,
+        familyId: response?['family_id']?.toString(),
+      );
+    } catch (e) {
+      // Если не удалось получить family_id, возвращаем пользователя без него
+      return AuthUser(id: user.id, email: user.email!);
+    }
   }
 
   @override
   Stream<AuthUser?> get authStateChanges {
-    return _client.auth.onAuthStateChange.map((data) {
+    return _client.auth.onAuthStateChange.asyncMap((data) async {
       final user = data.session?.user;
       if (user == null) return null;
 
-      return AuthUser(id: user.id, email: user.email!);
+      try {
+        final response = await _client
+            .from('family_members')
+            .select('id, family_id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        return AuthUser(
+          id: response?['id']?.toString() ?? user.id,
+          email: user.email!,
+          familyId: response?['family_id']?.toString(),
+        );
+      } catch (e) {
+        return AuthUser(id: user.id, email: user.email!);
+      }
     });
   }
 
@@ -38,5 +67,13 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signOut() async {
     await _client.auth.signOut();
+  }
+  
+  @override
+  AuthUser? get currentUser {
+    final user = _client.auth.currentUser;
+    if (user == null) return null;
+
+    return AuthUser(id: user.id, email: user.email!);
   }
 }

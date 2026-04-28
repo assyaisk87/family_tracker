@@ -10,7 +10,7 @@ class Task {
   final DateTime? dueDate;
   final bool completed;
   final List<FamilyUser> assignees;
-  final int priority;
+  final bool priority;
 
   const Task({
     required this.id,
@@ -35,7 +35,7 @@ class Task {
     DateTime? dueDate,
     bool? completed,
     List<FamilyUser>? assignees,
-    int? priority,
+    bool? priority,
   }) {
     return Task(
       id: id ?? this.id,

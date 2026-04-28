@@ -40,8 +40,7 @@ class TaskRepositoryImpl implements TaskRepository {
   TaskModel taskModelFromDomain(Task task) => TaskModel.fromDomain(task);
   
   @override
-  Future<void> createTask(Task task) {
-    // TODO: implement createTask
-    throw UnimplementedError();
+  Future<void> createTask(Task task) async {
+    await remoteDataSource.addTask(taskModelFromDomain(task));
   }
 }

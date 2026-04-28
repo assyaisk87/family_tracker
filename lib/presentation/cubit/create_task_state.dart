@@ -1,3 +1,4 @@
+import 'package:family_tracker/domain/entities/family_user.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'create_task_state.freezed.dart';
@@ -15,13 +16,13 @@ abstract class CreateTaskState with _$CreateTaskState {
     DateTime? createdAt,
     DateTime? dueDate,
     @Default(false) bool completed,
-    @Default(null) int? assigneeId,
-    @Default(3) int priority,
+    @Default(false) bool highPriority,
+    @Default([]) List<FamilyUser> availableAssignees,
+    @Default([]) List<FamilyUser> selectedAssignees,
     String? errorMessage
-    
   }) = _CreateTaskState;
-  
-   const CreateTaskState._();
-  
-  bool get canSubmit => title!.trim().isNotEmpty && status != CreateTaskStatus.loading;
+
+  const CreateTaskState._();
+
+  bool get canSubmit => (title?.trim().isNotEmpty ?? false) && status != CreateTaskStatus.loading;
 }

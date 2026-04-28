@@ -27,7 +27,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Task List'),
+        title: const Text('Задачи'),
         actions: [
           IconButton(
             onPressed: () {

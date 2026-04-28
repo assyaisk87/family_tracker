@@ -26,7 +26,7 @@ class TaskCard extends StatelessWidget {
         onTap: onTap,
         leading: CircleAvatar(
           backgroundColor: task.completed ? Colors.green : Colors.blue,
-          child: Icon(task.completed ? Icons.check : Icons.assignment),
+          child: Icon(task.completed ? Icons.check : Icons.assignment, color: Colors.white,),
         ),
         title: Text(task.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         subtitle: Column(
@@ -38,7 +38,7 @@ class TaskCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(assigneesText, maxLines: 1, overflow: TextOverflow.ellipsis),
             if (task.dueDate != null)
-              Text('Срок: ${task.dueDate!.day}.${task.dueDate!.month}.${task.dueDate!.year}'),
+              Text('Срок до: ${task.dueDate!.day}.${task.dueDate!.month}.${task.dueDate!.year}'),
           ],
         ),
         trailing: Column(
