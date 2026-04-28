@@ -5,6 +5,7 @@ import 'package:family_tracker/presentation/cubit/create_task_cubit.dart';
 import 'package:family_tracker/presentation/cubit/task_cubit.dart';
 import 'package:family_tracker/presentation/cubit/task_state.dart';
 import 'package:family_tracker/presentation/screens/create_task_screen.dart';
+import 'package:family_tracker/presentation/screens/edit_task_screen.dart';
 import 'package:family_tracker/presentation/widgets/task_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -119,9 +120,23 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     final task = state.filteredTasks[index];
                     final cubit = context.read<TaskCubit>();
                     final canDelete = cubit.canDeleteTask(task);
+                    final canEdit = cubit.canEditTask(task);
                     final taskWidget = TaskCard(
                       task: task,
-                      onTap: () => {}, // TODO: Навигация к деталям задачи
+                      onTap: () async {
+                        final updated = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TaskEditScreen(
+                              task: task,
+                              canEdit: canEdit,
+                            ),
+                          ),
+                        );
+                        if (updated == true && context.mounted) {
+                          context.read<TaskCubit>().loadTasks();
+                        }
+                      },
                       onToggle: () =>
                           context.read<TaskCubit>().toggleTaskDone(task.id),
                     );

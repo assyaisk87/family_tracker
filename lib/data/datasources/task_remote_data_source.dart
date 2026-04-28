@@ -128,7 +128,31 @@ class TaskRemoteDataSource {
     }
 
     await Future.delayed(const Duration(milliseconds: 150));
-   
+  }
+
+  Future<void> updateTask(TaskModel task) async {
+    try {
+      if (supabaseService.initialized) {
+        final taskData = _taskUpdateToJson(task);
+        await supabaseService.client
+            .from('tasks')
+            .update(taskData)
+            .eq('id', int.parse(task.id));
+      }
+    } catch (e) {
+      print('Ошибка обновления задачи в Supabase: $e');
+      rethrow;
+    }
+  }
+
+  Map<String, dynamic> _taskUpdateToJson(TaskModel task) {
+    return {
+      'title': task.title,
+      'description': task.description,
+      'due_date': task.dueDate?.toIso8601String(),
+      'completed': task.completed,
+      'priority': task.priority,
+    };
   }
 
   Future<List<FamilyUserModel>> fetchParticipants() async {

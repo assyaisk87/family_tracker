@@ -118,6 +118,10 @@ class TaskCubit extends Cubit<TaskState> {
     return task.createdBy == _currentUserId;
   }
 
+  bool canEditTask(Task task) {
+    return canDeleteTask(task);
+  }
+
   Future<void> getTaskById(String id) async {
     emit(state.copyWith(status: TaskStatus.loading, errorMessage: null));
 

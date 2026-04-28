@@ -40,4 +40,20 @@ class TaskAssigneesRemoteDataSource {
       return [];
     }
   }
+
+  Future<void> deleteTaskAssignees(String taskId) async {
+    if (!supabaseService.initialized) {
+      return;
+    }
+
+    try {
+      await supabaseService.client
+          .from('task_assignees')
+          .delete()
+          .eq('task_id', int.parse(taskId));
+    } catch (e) {
+      print('Ошибка удаления task_assignees: $e');
+      rethrow;
+    }
+  }
 }

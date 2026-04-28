@@ -28,6 +28,14 @@ class TaskCard extends StatelessWidget {
       task.dueDate!.isBefore(DateTime.now()) &&
       !task.completed;
 
+  String get descriptionPreview {
+    final description = task.description?.trim();
+    if (description == null || description.isEmpty) return '-';
+    return description.length <= 20
+        ? description
+        : '${description.substring(0, 20)}...';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -57,10 +65,7 @@ class TaskCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  (task.description != null &&
-                          task.description!.trim().isNotEmpty)
-                      ? task.description!
-                      : '-',
+                  descriptionPreview,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

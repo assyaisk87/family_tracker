@@ -21,4 +21,9 @@ class TaskAssigneesRepositoryImpl implements TaskAssigneesRepository {
     final models = await remoteDataSource.fetchTaskAssignees(taskId);
     return models.map((model) => model.toDomain()).toList();
   }
+
+  @override
+  Future<void> deleteTaskAssignees(String taskId) async {
+    await remoteDataSource.deleteTaskAssignees(taskId);
+  }
 }

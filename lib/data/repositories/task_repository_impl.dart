@@ -45,6 +45,23 @@ class TaskRepositoryImpl implements TaskRepository {
     await remoteDataSource.deleteTask(taskId);
   }
 
+  @override
+  Future<void> updateTask(Task task) async {
+    await remoteDataSource.updateTask(taskModelFromDomain(task));
+    await taskAssigneesRepository.deleteTaskAssignees(task.id);
+
+    final taskAssignees = task.assignees
+        .map((assignee) => TaskAssignee(
+              taskId: task.id,
+              memberId: assignee.id,
+            ))
+        .toList();
+
+    if (taskAssignees.isNotEmpty) {
+      await taskAssigneesRepository.addTaskAssignees(taskAssignees);
+    }
+  }
+
   TaskModel taskModelFromDomain(Task task) => TaskModel.fromDomain(task);
   
   @override
