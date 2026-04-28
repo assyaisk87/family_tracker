@@ -1,9 +1,12 @@
 import 'package:family_tracker/data/repositories/auth_repository_impl.dart';
+import 'package:family_tracker/data/repositories/task_assignees_repository_impl.dart';
 import 'package:family_tracker/data/repositories/task_repository_impl.dart';
 import 'package:family_tracker/data/repositories/family_users_repository.impl.dart';
+import 'package:family_tracker/data/datasources/task_assignees_remote_data_source.dart';
 import 'package:family_tracker/data/datasources/task_remote_data_source.dart';
 import 'package:family_tracker/data/datasources/family_users_data_source.dart';
 import 'package:family_tracker/domain/repositories/auth_repository.dart';
+import 'package:family_tracker/domain/repositories/task_assignees_repository.dart';
 import 'package:family_tracker/domain/repositories/task_repository.dart';
 import 'package:family_tracker/domain/repositories/family_users_repository.dart';
 import 'package:get_it/get_it.dart';
@@ -19,14 +22,24 @@ Future<void> setupDependencies() async {
   locator.registerLazySingleton<ImagePicker>(() => ImagePicker());
 
   // data sources
+  locator.registerLazySingleton<TaskAssigneesRemoteDataSource>(
+    () => TaskAssigneesRemoteDataSource(),
+  );
 
   ///repositories
   locator.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(locator<SupabaseClient>()),
   );
 
+  locator.registerLazySingleton<TaskAssigneesRepository>(
+    () => TaskAssigneesRepositoryImpl(locator<TaskAssigneesRemoteDataSource>()),
+  );
+
   locator.registerLazySingleton<TaskRepository>(
-    () => TaskRepositoryImpl(TaskRemoteDataSource()),
+    () => TaskRepositoryImpl(
+      TaskRemoteDataSource(),
+      locator<TaskAssigneesRepository>(),
+    ),
   );
 
   locator.registerLazySingleton<FamilyUsersRepository>(

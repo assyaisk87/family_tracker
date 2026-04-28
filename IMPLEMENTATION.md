@@ -44,8 +44,7 @@ Family Tracker - это Flutter приложение для управления
 ```
 
 **UI Компоненты:**
-- 3 выпадающих меню в TaskListScreen для выбора сортировки, фильтра и дополнительного фильтра по исполнителю
-- Кнопка "Сброс" для очистки всех фильтров
+- 3 выпадающих меню в TaskListScreen для выбора сортировки и фильтра 
 - Сообщение "Нет задач по выбранным фильтрам" при пустом списке после применения фильтров
 
 #### 1.3 Визуальные индикаторы задач
@@ -55,7 +54,7 @@ Family Tracker - это Flutter приложение для управления
 - Иконка отображается в Stack layout поверх основной карточки
 
 **Просроченные задачи:**
-- Заголовок задачи отображается красным цветом, если:
+- "Дата до" отображается красным цветом, если:
   - Задача не завершена (`completed == false`)
   - Дата срока в прошлом (`dueDate.isBefore(DateTime.now())`)
 - Логика реализована в `TaskCard.isOverdue` геттере
@@ -201,8 +200,6 @@ class User {
   final String id;
   final String username;
   final String? avatarUrl;
-  final String? bio;
-  final int postsCount;
   final String familyId;  // <- добавлено для поддержки работы с профилем
   final String? email;     // <- добавлено для отображения email
 }
@@ -269,9 +266,6 @@ class TaskState {
   final List<Task> filteredTasks;
   final TaskSortBy sortBy;
   final TaskFilter filter;
-  final String? assigneeFilter;
-  final String? currentUserId;  // <- для фильтра "Мои задачи"
-  // ...
 }
 ```
 
@@ -279,7 +273,6 @@ class TaskState {
 - `loadTasks()` - загружает список задач
 - `updateSortBy(TaskSortBy)` - изменяет сортировку
 - `updateFilter(TaskFilter)` - изменяет фильтр
-- `updateAssigneeFilter(String?)` - изменяет фильтр по исполнителю
 - `setCurrentUserId(String)` - устанавливает ID текущего пользователя
 - `_applyFiltersAndSorting()` - применяет все фильтры и сортировку
 
@@ -507,7 +500,6 @@ lib/
 - Загрузка и отображение задач
 - Фильтрация по статусу (завершенные/незавершенные)
 - Фильтрация по приоритету
-- Фильтрация "Мои задачи" (по создателю или исполнителю)
 - Сортировка по дате создания и сроку выполнения
 - Визуальные индикаторы (приоритет, просрочка)
 

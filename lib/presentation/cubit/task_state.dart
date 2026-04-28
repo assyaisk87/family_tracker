@@ -19,6 +19,5 @@ abstract class TaskState with _$TaskState {
     String? errorMessage,
     @Default(TaskSortBy.createdAt) TaskSortBy sortBy,
     @Default(TaskFilter.all) TaskFilter filter,
-    String? assigneeFilter,
   }) = _TaskState;
 }

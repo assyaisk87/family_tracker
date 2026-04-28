@@ -1,13 +1,16 @@
 import '../../domain/entities/family_user.dart';
 import '../../domain/entities/task.dart';
+import '../../domain/entities/task_assignee.dart';
+import '../../domain/repositories/task_assignees_repository.dart';
 import '../../domain/repositories/task_repository.dart';
 import '../datasources/task_remote_data_source.dart';
 import '../models/task_model.dart';
 
 class TaskRepositoryImpl implements TaskRepository {
   final TaskRemoteDataSource remoteDataSource;
+  final TaskAssigneesRepository taskAssigneesRepository;
 
-  TaskRepositoryImpl(this.remoteDataSource);
+  TaskRepositoryImpl(this.remoteDataSource, this.taskAssigneesRepository);
 
   @override
   Future<void> addTask(Task task) async {
@@ -41,6 +44,21 @@ class TaskRepositoryImpl implements TaskRepository {
   
   @override
   Future<void> createTask(Task task) async {
-    await remoteDataSource.addTask(taskModelFromDomain(task));
+    final insertedTaskId = await remoteDataSource.addTask(taskModelFromDomain(task));
+
+    if (insertedTaskId == null) {
+      throw Exception('Не удалось создать задачу в Supabase');
+    }
+
+    final taskAssignees = task.assignees
+        .map((assignee) => TaskAssignee(
+              taskId: insertedTaskId.toString(),
+              memberId: assignee.id,
+            ))
+        .toList();
+
+    if (taskAssignees.isNotEmpty) {
+      await taskAssigneesRepository.addTaskAssignees(taskAssignees);
+    }
   }
 }

@@ -86,23 +86,13 @@ class TaskCubit extends Cubit<TaskState> {
     ));
   }
 
-  void updateAssigneeFilter(String? assigneeId) {
-    final filteredTasks = _applyFiltersAndSorting(state.tasks, assigneeFilter: assigneeId);
-    emit(state.copyWith(
-      assigneeFilter: assigneeId,
-      filteredTasks: filteredTasks,
-    ));
-  }
-
   List<Task> _applyFiltersAndSorting(
     List<Task> tasks, {
     TaskSortBy? sortBy,
     TaskFilter? filter,
-    String? assigneeFilter,
   }) {
     sortBy ??= state.sortBy;
     filter ??= state.filter;
-    assigneeFilter ??= state.assigneeFilter;
 
     // Применить фильтры
     var filteredTasks = tasks.where((task) {
@@ -120,12 +110,7 @@ class TaskCubit extends Cubit<TaskState> {
         case TaskFilter.all:
         default:
           break;
-      }
-
-      // Фильтр по исполнителю
-      if (assigneeFilter != null && assigneeFilter.isNotEmpty) {
-        if (!task.assignees.any((assignee) => assignee.id.toString() == assigneeFilter)) return false;
-      }
+      }     
 
       return true;
     }).toList();

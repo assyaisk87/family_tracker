@@ -1,9 +1,11 @@
 import '../models/family_user_model.dart';
 import '../models/task_model.dart';
+import '../datasources/task_assignees_remote_data_source.dart';
 import 'supabase_service.dart';
 
 class TaskRemoteDataSource {
   final SupabaseService supabaseService = SupabaseService.instance;
+  final TaskAssigneesRemoteDataSource taskAssigneesRemoteDataSource = TaskAssigneesRemoteDataSource();
 
   Future<List<TaskModel>> fetchTasks() async {
     try {
@@ -70,7 +72,7 @@ class TaskRemoteDataSource {
     return null;
   }
 
-  Future<void> addTask(TaskModel task) async {
+  Future<int?> addTask(TaskModel task) async {
     try {
       if (supabaseService.initialized) {
         final taskData = _taskModelToJson(task);
@@ -80,29 +82,15 @@ class TaskRemoteDataSource {
             .select()
             .single();
 
-        // Добавляем assignees с реальным task_id
-        for (final assignee in task.assignees) {
-          final assigneeId = int.tryParse(assignee.userId) ?? int.tryParse(assignee.id);
-          if (assigneeId == null) {
-            throw FormatException(
-              'Невозможно преобразовать assignee_id в bigint: assignee.id=${assignee.id}, assignee.userId=${assignee.userId}',
-            );
-          }
-
-          await supabaseService.client
-              .from('task_assignees')
-              .insert({
-                'task_id': insertedTask['id'],
-                'assignee_id': assigneeId,
-              });
-        }
-        return;
+        return insertedTask['id'] is int
+            ? insertedTask['id'] as int
+            : int.tryParse(insertedTask['id']?.toString() ?? '');
       }
     } catch (e) {
       print('Ошибка добавления задачи в Supabase: $e');
     }
 
-  
+    return null;
   }
 
   Future<void> toggleTaskDone(String taskId) async {
