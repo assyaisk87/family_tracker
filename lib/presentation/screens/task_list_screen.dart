@@ -17,12 +17,12 @@ class TaskListScreen extends StatefulWidget {
 }
 
 class _TaskListScreenState extends State<TaskListScreen> {
-   @override
+  @override
   void initState() {
     super.initState();
     context.read<TaskCubit>().loadTasks();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,7 +31,6 @@ class _TaskListScreenState extends State<TaskListScreen> {
         actions: [
           IconButton(
             onPressed: () {
-            
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -44,7 +43,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   ),
                 ),
               ).then((_) {
-                if(context.mounted){
+                if (context.mounted) {
                   context.read<TaskCubit>().loadTasks();
                 }
               });
@@ -64,17 +63,101 @@ class _TaskListScreenState extends State<TaskListScreen> {
             return Text('Список пуст');
           }
 
-          return ListView.separated(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            itemBuilder: (context, index) {
-              final task = state.tasks[index];
-              return TaskCard(task: task, onTap: () => {},onToggle: () => {},);
-            },
-            separatorBuilder: (_, _) => Divider(height: 1),
-            itemCount: state.tasks.length,
+          return Column(
+            children: [
+              // Фильтры и сортировка
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: Colors.grey[100],
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButton<TaskSortBy>(
+                        value: state.sortBy,
+                        icon: const Icon(Icons.sort),
+                        onChanged: (value) {
+                          if (value != null) {
+                            context.read<TaskCubit>().updateSortBy(value);
+                          }
+                        },
+                        items: TaskSortBy.values.map((sortBy) {
+                          return DropdownMenuItem(
+                            value: sortBy,
+                            child: Text(_getSortByLabel(sortBy)),
+                          );
+                        }).toList(),
+                        hint: Text('Сортировка'),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: DropdownButton<TaskFilter>(
+                        value: state.filter,
+                        icon: const Icon(Icons.filter_alt),
+                        onChanged: (value) {
+                          if (value != null) {
+                            context.read<TaskCubit>().updateFilter(value);
+                          }
+                        },
+                        items: TaskFilter.values.map((filter) {
+                          return DropdownMenuItem(
+                            value: filter,
+                            child: Text(_getFilterLabel(filter)),
+                          );
+                        }).toList(),
+                        hint: Text('Фильтр'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Список задач
+              Expanded(
+                child: ListView.separated(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  itemBuilder: (context, index) {
+                    final task = state.filteredTasks[index];
+                    return TaskCard(
+                      task: task,
+                      onTap: () => {}, // TODO: Навигация к деталям задачи
+                      onToggle: () =>
+                          context.read<TaskCubit>().toggleTaskDone(task.id),
+                    );
+                  },
+                  separatorBuilder: (_, _) => Divider(height: 1),
+                  itemCount: state.filteredTasks.length,
+                ),
+              ),
+            ],
           );
         },
-      ),      
+      ),
     );
+  }
+
+  String _getSortByLabel(TaskSortBy sortBy) {
+    switch (sortBy) {
+      case TaskSortBy.createdAt:
+        return 'По дате создания';
+      case TaskSortBy.dueDate:
+        return 'По сроку';
+      case TaskSortBy.priority:
+        return 'По приоритету';
+      case TaskSortBy.completed:
+        return 'По статусу';
+    }
+  }
+
+  String _getFilterLabel(TaskFilter filter) {
+    switch (filter) {
+      case TaskFilter.all:
+        return 'Все';
+      case TaskFilter.completed:
+        return 'Завершенные';
+      case TaskFilter.pending:
+        return 'Незавершенные';
+      case TaskFilter.highPriority:
+        return 'Высокий приоритет';
+    }
   }
 }

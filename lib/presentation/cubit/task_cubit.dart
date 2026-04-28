@@ -13,9 +13,11 @@ class TaskCubit extends Cubit<TaskState> {
 
     try {
       final tasks = await _repository.getTasks();
+      final filteredTasks = _applyFiltersAndSorting(tasks);
       emit(state.copyWith(
         status: TaskStatus.loaded,
         tasks: tasks,
+        filteredTasks: filteredTasks,
       ));
     } catch (e) {
       emit(state.copyWith(
@@ -66,5 +68,89 @@ class TaskCubit extends Cubit<TaskState> {
         errorMessage: 'Ошибка загрузки задачи: $e',
       ));
     }
+  }
+
+  void updateSortBy(TaskSortBy sortBy) {
+    final filteredTasks = _applyFiltersAndSorting(state.tasks, sortBy: sortBy);
+    emit(state.copyWith(
+      sortBy: sortBy,
+      filteredTasks: filteredTasks,
+    ));
+  }
+
+  void updateFilter(TaskFilter filter) {
+    final filteredTasks = _applyFiltersAndSorting(state.tasks, filter: filter);
+    emit(state.copyWith(
+      filter: filter,
+      filteredTasks: filteredTasks,
+    ));
+  }
+
+  void updateAssigneeFilter(String? assigneeId) {
+    final filteredTasks = _applyFiltersAndSorting(state.tasks, assigneeFilter: assigneeId);
+    emit(state.copyWith(
+      assigneeFilter: assigneeId,
+      filteredTasks: filteredTasks,
+    ));
+  }
+
+  List<Task> _applyFiltersAndSorting(
+    List<Task> tasks, {
+    TaskSortBy? sortBy,
+    TaskFilter? filter,
+    String? assigneeFilter,
+  }) {
+    sortBy ??= state.sortBy;
+    filter ??= state.filter;
+    assigneeFilter ??= state.assigneeFilter;
+
+    // Применить фильтры
+    var filteredTasks = tasks.where((task) {
+      // Фильтр по статусу
+      switch (filter) {
+        case TaskFilter.completed:
+          if (!task.completed) return false;
+          break;
+        case TaskFilter.pending:
+          if (task.completed) return false;
+          break;
+        case TaskFilter.highPriority:
+          if (!task.priority) return false;
+          break;
+        case TaskFilter.all:
+        default:
+          break;
+      }
+
+      // Фильтр по исполнителю
+      if (assigneeFilter != null && assigneeFilter.isNotEmpty) {
+        if (!task.assignees.any((assignee) => assignee.id.toString() == assigneeFilter)) return false;
+      }
+
+      return true;
+    }).toList();
+
+    // Применить сортировку
+    filteredTasks.sort((a, b) {
+      switch (sortBy) {
+        case TaskSortBy.createdAt:
+          return b.createdAt.compareTo(a.createdAt); // Новые сначала
+        case TaskSortBy.dueDate:
+          if (a.dueDate == null && b.dueDate == null) return 0;
+          if (a.dueDate == null) return 1;
+          if (b.dueDate == null) return -1;
+          return a.dueDate!.compareTo(b.dueDate!);
+        case TaskSortBy.priority:
+          if (a.priority == b.priority) return 0;
+          return a.priority ? -1 : 1; // Высокий приоритет сначала
+        case TaskSortBy.completed:
+          if (a.completed == b.completed) return 0;
+          return a.completed ? 1 : -1; // Незавершенные сначала
+        default:
+          return 0;
+      }
+    });
+
+    return filteredTasks;
   }
 }
