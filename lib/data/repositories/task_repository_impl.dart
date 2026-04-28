@@ -40,6 +40,11 @@ class TaskRepositoryImpl implements TaskRepository {
     await remoteDataSource.toggleTaskDone(taskId);
   }
 
+  @override
+  Future<void> deleteTask(String taskId) async {
+    await remoteDataSource.deleteTask(taskId);
+  }
+
   TaskModel taskModelFromDomain(Task task) => TaskModel.fromDomain(task);
   
   @override

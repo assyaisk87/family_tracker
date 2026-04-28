@@ -1,4 +1,5 @@
 import 'package:family_tracker/domain/repositories/auth_repository.dart';
+import 'package:family_tracker/domain/repositories/family_users_repository.dart';
 import 'package:family_tracker/domain/repositories/task_repository.dart';
 import 'package:family_tracker/locator.dart';
 import 'package:family_tracker/presentation/cubit/auth_cubit.dart';
@@ -34,7 +35,11 @@ class FamilyTrackerApp extends StatelessWidget {
     return  MultiBlocProvider(
         providers: [
           BlocProvider(create: (_) => AuthCubit(locator<AuthRepository>())),
-          BlocProvider(create: (_) => TaskCubit(locator<TaskRepository>())),
+          BlocProvider(create: (_) => TaskCubit(
+            locator<TaskRepository>(),
+            locator<AuthRepository>(),
+            locator<FamilyUsersRepository>(),
+          )),
           BlocProvider(create: (_) => CreateTaskCubit(locator<TaskRepository>(), locator<AuthRepository>())),
         ],
         child: MaterialApp(

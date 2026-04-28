@@ -117,11 +117,77 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   padding: EdgeInsets.symmetric(vertical: 8),
                   itemBuilder: (context, index) {
                     final task = state.filteredTasks[index];
-                    return TaskCard(
+                    final cubit = context.read<TaskCubit>();
+                    final canDelete = cubit.canDeleteTask(task);
+                    final taskWidget = TaskCard(
                       task: task,
                       onTap: () => {}, // TODO: Навигация к деталям задачи
                       onToggle: () =>
                           context.read<TaskCubit>().toggleTaskDone(task.id),
+                    );
+
+                    if (!canDelete) {
+                      return taskWidget;
+                    }
+
+                    return Dismissible(
+                      key: ValueKey(task.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 16,
+                        ),
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        color: Colors.red,
+                        child: const Icon(
+                          Icons.delete,
+                          color: Colors.white,
+                        ),
+                      ),
+                      confirmDismiss: (_) async {
+                        final shouldDelete = await showDialog<bool>(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text('Подтверждение'),
+                              content: const Text(
+                                'Вы точно хотите удалить задачу?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: const Text('Отмена'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: const Text('Удалить'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (shouldDelete != true) {
+                          return false;
+                        }
+
+                        try {
+                          await cubit.deleteTask(task.id);
+                          return true;
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Не удалось удалить задачу: $e'),
+                              ),
+                            );
+                          }
+                          return false;
+                        }
+                      },
+                      child: taskWidget,
                     );
                   },
                   separatorBuilder: (_, _) => Divider(height: 1),

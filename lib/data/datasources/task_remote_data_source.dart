@@ -93,6 +93,20 @@ class TaskRemoteDataSource {
     return null;
   }
 
+  Future<void> deleteTask(String taskId) async {
+    try {
+      if (supabaseService.initialized) {
+        await supabaseService.client
+            .from('tasks')
+            .delete()
+            .eq('id', int.parse(taskId));
+      }
+    } catch (e) {
+      print('Ошибка удаления задачи из Supabase: $e');
+      rethrow;
+    }
+  }
+
   Future<void> toggleTaskDone(String taskId) async {
     try {
       if (supabaseService.initialized) {

@@ -1,17 +1,29 @@
+import 'package:family_tracker/domain/entities/family_user.dart';
 import 'package:family_tracker/domain/entities/task.dart';
+import 'package:family_tracker/domain/repositories/auth_repository.dart';
+import 'package:family_tracker/domain/repositories/family_users_repository.dart';
 import 'package:family_tracker/domain/repositories/task_repository.dart';
 import 'package:family_tracker/presentation/cubit/task_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TaskCubit extends Cubit<TaskState> {
   final TaskRepository _repository;
+  final AuthRepository _authRepository;
+  final FamilyUsersRepository _familyUsersRepository;
+  String? _currentUserId;
+  bool _currentUserIsParent = false;
 
-  TaskCubit(this._repository) : super(const TaskState());
+  TaskCubit(
+    this._repository,
+    this._authRepository,
+    this._familyUsersRepository,
+  ) : super(const TaskState());
 
   Future<void> loadTasks() async {
     emit(state.copyWith(status: TaskStatus.loading, errorMessage: null));
 
     try {
+      await _loadCurrentUserContext();
       final tasks = await _repository.getTasks();
       final filteredTasks = _applyFiltersAndSorting(tasks);
       emit(state.copyWith(
@@ -24,6 +36,40 @@ class TaskCubit extends Cubit<TaskState> {
         status: TaskStatus.error,
         errorMessage: 'Ошибка загрузки задач: $e',
       ));
+    }
+  }
+
+  Future<void> _loadCurrentUserContext() async {
+    try {
+      final authUser = await _authRepository.getCurrentUserWithFamily();
+      if (authUser == null || authUser.familyId == null) {
+        _currentUserId = null;
+        _currentUserIsParent = false;
+        return;
+      }
+
+      final familyId = int.tryParse(authUser.familyId!);
+      if (familyId == null) {
+        _currentUserId = null;
+        _currentUserIsParent = false;
+        return;
+      }
+
+      final members = await _familyUsersRepository.getFamilyUsers(familyId);
+      FamilyUser? currentMember;
+      try {
+        currentMember = members.firstWhere(
+          (member) => member.id == authUser.id || member.userId == authUser.id,
+        );
+      } catch (_) {
+        currentMember = null;
+      }
+
+      _currentUserId = currentMember?.id;
+      _currentUserIsParent = currentMember?.role ?? false;
+    } catch (_) {
+      _currentUserId = null;
+      _currentUserIsParent = false;
     }
   }
 
@@ -51,6 +97,25 @@ class TaskCubit extends Cubit<TaskState> {
         errorMessage: 'Ошибка обновления задачи: $e',
       ));
     }
+  }
+
+  Future<void> deleteTask(String taskId) async {
+    try {
+      await _repository.deleteTask(taskId);
+      await loadTasks();
+    } catch (e) {
+      emit(state.copyWith(
+        status: TaskStatus.error,
+        errorMessage: 'Ошибка удаления задачи: $e',
+      ));
+      rethrow;
+    }
+  }
+
+  bool canDeleteTask(Task task) {
+    if (_currentUserIsParent) return true;
+    if (_currentUserId == null) return false;
+    return task.createdBy == _currentUserId;
   }
 
   Future<void> getTaskById(String id) async {
