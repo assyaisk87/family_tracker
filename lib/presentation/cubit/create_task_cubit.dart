@@ -60,34 +60,66 @@ class CreateTaskCubit extends Cubit<CreateTaskState> {
     }
     emit(state.copyWith(selectedAssignees: selectedAssignees));
   }
-  
-  Future<void> submit() async {
+
+  Future<void> submit({Task? task}) async {
     if (!state.canSubmit) return;
 
     emit(state.copyWith(status: CreateTaskStatus.loading));
     final authUser = await _authRepository.getCurrentUserWithFamily();
 
-    final newTask = Task(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: state.title!.trim(),
-      description: state.description?.trim() ?? '',
-      familyId: state.familyId ?? authUser?.familyId ?? 'default_family',
-      createdBy: authUser!.id,
-      createdAt: DateTime.now(),
-      dueDate: state.dueDate,
-      completed: false,
-      assignees: state.selectedAssignees,
-      priority: state.highPriority,
-    );
-
+    final updatedTask;
+    if (task != null) {
+      updatedTask = task?.copyWith(
+        title: state.title,
+        description: state.description,
+        dueDate: state.dueDate,
+        priority: state.highPriority,
+        assignees: state.selectedAssignees,
+      );
+    } else {
+      updatedTask = Task(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        title: state.title!.trim(),
+        description: state.description?.trim() ?? '',
+        familyId: state.familyId ?? authUser?.familyId ?? 'default_family',
+        createdBy: authUser!.id,
+        createdAt: DateTime.now(),
+        dueDate: state.dueDate,
+        completed: false,
+        assignees: state.selectedAssignees,
+        priority: state.highPriority,
+      );
+    }
     try {
-      await _taskRepository.createTask(newTask);
+      if (task != null) {
+        await _taskRepository.updateTask(updatedTask!);
+      } else {
+        await _taskRepository.createTask(updatedTask);
+      }
+
       emit(state.copyWith(status: CreateTaskStatus.success));
     } catch (e) {
-      emit(state.copyWith(
-        status: CreateTaskStatus.error,
-        errorMessage: 'Ошибка создания задачи: $e',
-      ));
+      emit(
+        state.copyWith(
+          status: CreateTaskStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
     }
+  }
+
+  Future<void> initEdit(Task task) async {
+    final users = await _taskRepository.getParticipants();
+
+    emit(
+      state.copyWith(
+        title: task.title,
+        description: task.description ?? '',
+        dueDate: task.dueDate,
+        highPriority: task.priority,
+        selectedAssignees: task.assignees,
+        availableAssignees: users,
+      ),
+    );
   }
 }
