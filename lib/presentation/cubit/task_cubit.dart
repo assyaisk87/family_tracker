@@ -5,6 +5,7 @@ import 'package:family_tracker/domain/repositories/family_users_repository.dart'
 import 'package:family_tracker/domain/repositories/task_repository.dart';
 import 'package:family_tracker/presentation/cubit/task_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class TaskCubit extends Cubit<TaskState> {
   final TaskRepository _repository;
@@ -207,4 +208,9 @@ class TaskCubit extends Cubit<TaskState> {
 
     return filteredTasks;
   }
+
+  List<Task> getTasksForDay(DateTime selectedDay) {
+    return state.tasks.where((task) => isSameDay(task.dueDate, selectedDay)).toList();
+  }
+
 }

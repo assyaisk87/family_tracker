@@ -3,7 +3,9 @@ import 'package:family_tracker/domain/repositories/family_users_repository.dart'
 import 'package:family_tracker/domain/repositories/task_repository.dart';
 import 'package:family_tracker/locator.dart';
 import 'package:family_tracker/presentation/cubit/auth_cubit.dart';
+import 'package:family_tracker/presentation/cubit/calendar_cubit.dart';
 import 'package:family_tracker/presentation/cubit/create_task_cubit.dart';
+import 'package:family_tracker/presentation/cubit/profile_cubit.dart';
 import 'package:family_tracker/presentation/cubit/task_cubit.dart';
 import 'package:family_tracker/presentation/widgets/auth_wrapper.dart';
 import 'package:flutter/material.dart';
@@ -41,6 +43,9 @@ class FamilyTrackerApp extends StatelessWidget {
             locator<FamilyUsersRepository>(),
           )),
           BlocProvider(create: (_) => CreateTaskCubit(locator<TaskRepository>(), locator<AuthRepository>())),
+          BlocProvider(create: (_) => CalendarCubit()),
+          BlocProvider(create: (_) => ProfileCubit( 
+            locator<AuthRepository>(),locator<FamilyUsersRepository>())),
         ],
         child: MaterialApp(
           title: 'Family Tracker',
