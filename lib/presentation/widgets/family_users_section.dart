@@ -114,11 +114,11 @@ class FamilyMembersSection extends StatelessWidget {
                       : CircleAvatar(
                           backgroundColor: Colors.blue.shade200,
                           child: Text(
-                            member.displayName[0],
+                            member.displayName.substring(0,2).toUpperCase(),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
-                              color: Colors.black54,
+                              color: Colors.white,
                             ),
                           ),
                         ),

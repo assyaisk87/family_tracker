@@ -56,11 +56,11 @@ class ProfileHeader extends StatelessWidget {
                           radius: 40,
                           backgroundColor: Colors.blue.shade200,
                           child: Text(
-                            user.username[0],
+                            user.username.substring(0,2).toUpperCase(),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
-                              color: Colors.black54,
+                              color: Colors.white,
                             ),
                           ),
                         ),
