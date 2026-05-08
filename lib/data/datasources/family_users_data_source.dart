@@ -1,3 +1,5 @@
+import 'package:family_tracker/domain/entities/family_user.dart';
+
 import '../models/family_user_model.dart';
 import 'supabase_service.dart';
 
@@ -24,6 +26,26 @@ class FamilyUsersRemoteDataSource {
 
     await Future.delayed(const Duration(milliseconds: 200));
     return List.unmodifiable([]);
+  }
+
+  Future<FamilyUserModel> updateFamilyUser(FamilyUser upatedUser) async {
+    final updates = <String, dynamic>{
+      'display_name': upatedUser.displayName,
+      'role': upatedUser.role,
+    };
+ 
+    if (!supabaseService.initialized) {
+      throw StateError('Supabase не инициализирован');
+    }
+ 
+    final response = await supabaseService.client
+        .from('family_members')
+        .update(updates)
+        .eq('id', upatedUser.id)
+        .select()
+        .single();
+ 
+    return _familyUserModelFromJson(response);
   }
 
   // Утилиты для конвертации JSON

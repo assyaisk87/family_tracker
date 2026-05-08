@@ -12,4 +12,10 @@ class FamilyUsersRepositoryImpl implements FamilyUsersRepository {
     final familyUsers = await remoteDataSource.fetchFamilyUsers(familyId);
     return familyUsers.map((it) => it.toDomain()).toList();
   }
+
+  @override
+  Future<FamilyUser> updateFamilyUser(FamilyUser updatedUser) async {
+     final familyUser = await remoteDataSource.updateFamilyUser(updatedUser);
+    return familyUser.toDomain();
+  }
 }
