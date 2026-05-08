@@ -16,8 +16,9 @@ class TaskCard extends StatelessWidget {
 
   String get assigneesText {
     if (task.assignees.isEmpty) return 'Нет исполнителей';
-    if (task.assignees.length == 1)
+    if (task.assignees.length == 1) {
       return 'Исполнитель: ${task.assignees.first.displayName}';
+    }
     return 'Исполнители: ${task.assignees.map((a) => a.displayName).join(', ')}';
   }
 

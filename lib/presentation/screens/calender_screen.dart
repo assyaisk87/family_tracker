@@ -38,7 +38,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Calendar')),
+      appBar: AppBar(title: const Text('Календарь')),
       body: Column(
         children: [
           BlocBuilder<CalendarCubit, CalendarState>(
@@ -57,7 +57,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                 eventLoader: (day) => context.read<TaskCubit>().getTasksForDay(day),
                 calendarFormat: CalendarFormat.month,
-
+ 
+                headerStyle: const HeaderStyle(
+                  formatButtonVisible: false,
+                  titleCentered: true,
+                ),
+                daysOfWeekStyle: const DaysOfWeekStyle(
+                  weekendStyle: TextStyle(color: Colors.redAccent),
+                ),
                 calendarStyle: const CalendarStyle(
                   todayDecoration: BoxDecoration(
                     color: Colors.blue,
