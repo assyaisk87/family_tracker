@@ -1,7 +1,5 @@
-import 'package:family_tracker/data/repositories/task_repository_impl.dart';
 import 'package:family_tracker/domain/entities/family_user.dart';
 import 'package:family_tracker/domain/entities/task.dart';
-import 'package:family_tracker/domain/repositories/family_users_repository.dart';
 import 'package:family_tracker/presentation/cubit/calendar_cubit.dart';
 import 'package:family_tracker/presentation/cubit/calendar_state.dart';
 import 'package:family_tracker/presentation/cubit/profile_cubit.dart';
@@ -22,7 +20,6 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   final focusedDay = DateTime.now();
-  List<FamilyUser> familyUsers = [];
 
   @override
   void initState() {
@@ -58,7 +55,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   context.read<CalendarCubit>().selectDay(selected);
                 },
 
-                // eventLoader: getTasksForDay,
+                eventLoader: (day) => context.read<TaskCubit>().getTasksForDay(day),
                 calendarFormat: CalendarFormat.month,
 
                 calendarStyle: const CalendarStyle(
@@ -86,7 +83,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               return BlocBuilder<TaskCubit, TaskState>(
                 builder: (context, taskState) {
                   final tasks = calendarState.selectedDate != null
-                      ? taskState.tasks
+                      ? selectedTasks(calendarState.selectedDate)
                             .where(
                               (task) => isSameDay(
                                 task.dueDate,
@@ -102,13 +99,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                   return Expanded(
                     child: ListView.builder(
-                      itemCount: selectedTasks(
-                        calendarState.selectedDate,
-                      ).length,
+                      itemCount: tasks.length,
                       itemBuilder: (context, index) {
-                        final task = selectedTasks(
-                          calendarState.selectedDate,
-                        )[index];
+                        final task = tasks[index];
                         final due = task.dueDate?.toLocal();
                         final today = DateTime.now();
 
@@ -121,7 +114,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         // calendar-specific presentation
                         return BlocBuilder<ProfileCubit, ProfileState>(
                           builder: (context, profileState) {
-                            familyUsers = profileState.familyMembers;
+                            final familyUsers = profileState.familyMembers;
                             return CalendarTaskItem(
                               task: task,
                               creator:  familyUsers.firstWhere(
